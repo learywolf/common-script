@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ $# -ne 1 -a $# -ne  0 ];then
+	echo "Useage: $0 NameSpaceID or Name"
+	echo "Useage: $0 .Choose one container name to enter."
+	exit 1
+fi
+
+if [ $# -eq 0 ];then
+	docker ps -a |awk '{print $NF}' |sed -n "2,$ p"> /dev/shm/$$
+	num=`cat /dev/shm/$$| wc -l`
+	for i in `seq 1 $num`;do
+		echo \[$i\] `sed -n ${i}p /dev/shm/$$`
+	done
+	read  -p "Your choice is : " s
+	name=`sed -n ${s}p /dev/shm/$$`
+else
+	name=$1
+fi
+
+pid=`docker inspect $name -f {{.State.Pid}}`
+nsenter -t $pid -m -u -i -n -p
